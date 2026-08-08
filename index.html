@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackBo // patrones_infinitos.exe</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <canvas id="defaultCanvas0"></canvas>
+
+  <div id="overlay">
+    <header>
+      <h1 class="glitch" data-text="HACKBO">HACKBO</h1>
+      <p class="subtitle">arte_generativo :: patrones_de_turing :: recursión_infinita</p>
+    </header>
+
+    <section class="info-box">
+      <p>
+        <span class="tag">[SISTEMA]</span> Cada píxel obedece una regla local.
+        Cada regla local produce complejidad global. Así crece un helecho,
+        así se forman las manchas de un leopardo, así palpita una neurona.
+      </p>
+      <p>
+        <span class="tag">[FRACTAL]</span> Lo que ves se repite a escalas distintas —
+        auto-similitud infinita, la firma matemática de la vida misma.
+      </p>
+    </section>
+
+    <div class="controls">
+      <button id="btnRegen">↻ regenerar</button>
+      <button id="btnMode">⧉ modo</button>
+      <button id="btnSave">⬇ guardar</button>
+      <div class="stats">
+        <span id="modeLabel">MODO: REACCIÓN-DIFUSIÓN</span>
+        <span id="fpsLabel">FPS: --</span>
+      </div>
+    </div>
+
+    <footer>
+      <p>hackbo_web © auto-organización emergente // <span id="clock"></span></p>
+    </footer>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  <script src="sketch.js"></script>
+</body>
+</html>
