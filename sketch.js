@@ -6,13 +6,14 @@
 let mode = 0;
 const MODES = ['REACCIÓN-DIFUSIÓN', 'MANDELBROT_ASCII'];
 
-// --- Gray-Scott reaction-diffusion (NO TOCAR) ---
+// --- Gray-Scott reaction-diffusion ---
 let gridW, gridH;
 let scaleFactor = 4;
 let A, B, A2, B2;
 let feed = 0.055, kill = 0.062;
 let diffA = 1.0, diffB = 0.5;
 let hueShift = 0;
+let dissipationFactor = 0.30; // controlado por el slider
 
 // --- ASCII Mandelbrot ---
 let asciiZone;
@@ -40,6 +41,13 @@ function setup() {
   document.getElementById('btnRegen').addEventListener('click', regenerate);
   document.getElementById('btnMode').addEventListener('click', switchMode);
   document.getElementById('btnSave').addEventListener('click', () => saveCanvas('hackbo_pattern', 'png'));
+
+  const slider = document.getElementById('dissipationSlider');
+  const valueLabel = document.getElementById('dissipationValue');
+  slider.addEventListener('input', (e) => {
+    dissipationFactor = e.target.value / 100;
+    valueLabel.textContent = dissipationFactor.toFixed(2);
+  });
 }
 
 function windowResized() {
@@ -49,12 +57,14 @@ function windowResized() {
 }
 
 function setAsciiZone() {
+  // Zona centrada más hacia abajo, alineada horizontalmente
+  // con el ancho del info-box (izquierda), pero en el lado derecho
   let margin = 40;
-  let w = width * 0.44;
-  let h = height * 0.44;
+  let w = width * 0.42;
+  let h = height * 0.42;
   asciiZone = {
     x: width - w - margin,
-    y: margin,
+    y: height * 0.5 - h * 0.5, // centrado verticalmente, ligeramente hacia abajo
     w: w,
     h: h
   };
@@ -67,9 +77,13 @@ function draw() {
   else drawAsciiMandelbrot();
 
   document.getElementById('fpsLabel').textContent = 'FPS: ' + floor(frameRate());
+
+  // Mostrar/ocultar el control de disipación según el modo
+  const control = document.getElementById('dissipationControl');
+  control.style.display = (mode === 0) ? 'flex' : 'none';
 }
 
-/* ============ MODE 0: TURING PATTERNS (Gray-Scott) — SIN CAMBIOS ============ */
+/* ============ MODE 0: TURING PATTERNS (Gray-Scott) ============ */
 
 function initTuring() {
   gridW = floor(width / scaleFactor);
@@ -108,6 +122,30 @@ function idx(x, y) {
 }
 
 function drawTuring() {
+  // --- Interacción con el mouse: crea un nuevo punto + disipación local ---
+  if (mode === 0 && mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
+    let mgx = floor(mouseX / scaleFactor);
+    let mgy = floor(mouseY / scaleFactor);
+    let radius = 5;
+
+    for (let x = -radius; x <= radius; x++) {
+      for (let y = -radius; y <= radius; y++) {
+        if (x * x + y * y < radius * radius) {
+          let xi = (mgx + x + gridW) % gridW;
+          let yi = (mgy + y + gridH) % gridH;
+          let i = yi * gridW + xi;
+          // Agrega morfógeno B (nuevo "punto" de patrón)
+          B[i] = min(1, B[i] + 0.6);
+          // Aumenta la disipación local (kill effectivo mayor cerca del mouse)
+          A[i] = min(1, A[i] + 0.15);
+        }
+      }
+    }
+  }
+
+  // --- Simulación Gray-Scott ---
+  let effectiveKill = kill + dissipationFactor * 0.05; // el slider ajusta la disipación global
+
   for (let step = 0; step < 2; step++) {
     for (let y = 0; y < gridH; y++) {
       for (let x = 0; x < gridW; x++) {
@@ -123,7 +161,7 @@ function drawTuring() {
 
         let reaction = a * b * b;
         A2[i] = a + (diffA * lapA * 0.2 - reaction + feed * (1 - a));
-        B2[i] = b + (diffB * lapB * 0.2 + reaction - (kill + feed) * b);
+        B2[i] = b + (diffB * lapB * 0.2 + reaction - (effectiveKill + feed) * b);
 
         A2[i] = constrain(A2[i], 0, 1);
         B2[i] = constrain(B2[i], 0, 1);
@@ -149,11 +187,15 @@ function drawTuring() {
     }
   }
   colorMode(RGB, 255);
+
+  // --- Indicador visual del cursor sobre el canvas ---
+  noFill();
+  stroke(0, 255, 179, 150);
+  strokeWeight(1);
+  ellipse(mouseX, mouseY, 22, 22);
 }
 
-/* ============ MODE 1: MANDELBROT EN ASCII ============ */
-/* Fractal de Mandelbrot renderizado con caracteres ASCII,
-   zoom infinito animado + ruido para "grano" tipo terminal */
+/* ============ MODE 1: MANDELBROT EN ASCII (sin marco, reposicionado) ============ */
 
 function drawAsciiMandelbrot() {
   background(4, 6, 10, 40);
@@ -161,20 +203,17 @@ function drawAsciiMandelbrot() {
   push();
   translate(asciiZone.x, asciiZone.y);
 
-  drawHudFrame();
-
+  // Clip para que el texto nunca se salga de la zona designada
   drawingContext.save();
   drawingContext.beginPath();
   drawingContext.rect(0, 0, asciiZone.w, asciiZone.h);
   drawingContext.clip();
 
-  // --- Zoom infinito con reset cíclico ---
   mbZoom *= mbZoomSpeed;
   mbResetTimer++;
   if (mbZoom > 80000 || mbResetTimer > 900) {
     mbZoom = 1;
     mbResetTimer = 0;
-    // Cambia ligeramente el punto de interés para variar el patrón
     let targets = [
       [-0.743643887037151, 0.13182590420533],
       [-0.7453, 0.1127],
@@ -202,7 +241,6 @@ function drawAsciiMandelbrot() {
 
   for (let row = 0; row < numRows; row++) {
     for (let col = 0; col < numCols; col++) {
-      // Mapear posición de pantalla al plano complejo
       let scaleC = 3.0 / mbZoom;
       let aspect = asciiZone.w / asciiZone.h;
 
@@ -212,7 +250,6 @@ function drawAsciiMandelbrot() {
       let iter = mandelbrotIter(cx, cy, mbMaxIter);
       let n = iter / mbMaxIter;
 
-      // Ruido sutil para textura "viva" tipo grano de señal
       let grain = noise(col * 0.15, row * 0.15, mbNoiseOffset) * 0.15;
       let val = constrain(n + grain, 0, 1);
 
@@ -227,7 +264,6 @@ function drawAsciiMandelbrot() {
         fill(hue, 75, bright, alpha);
         text(ch, col * charW, row * charH);
       } else {
-        // Puntos que "pertenecen" al conjunto: casi negro con un punto tenue
         fill(280, 40, 15, 120);
         text('.', col * charW, row * charH);
       }
@@ -237,6 +273,17 @@ function drawAsciiMandelbrot() {
   colorMode(RGB, 255);
   drawingContext.restore();
   pop();
+
+  // --- Etiqueta flotante minimalista (sin marco/borde) ---
+  noStroke();
+  fill(0, 255, 179, 180);
+  textFont('monospace');
+  textSize(9);
+  textAlign(LEFT, TOP);
+  text('MANDELBROT_SET :: zoom×' + nf(mbZoom, 1, 1), asciiZone.x, asciiZone.y - 18);
+  textAlign(RIGHT, TOP);
+  fill(255, 0, 200, 160);
+  text('z→z²+c', asciiZone.x + asciiZone.w, asciiZone.y - 18);
 }
 
 function mandelbrotIter(cx, cy, maxIter) {
@@ -249,31 +296,6 @@ function mandelbrotIter(cx, cy, maxIter) {
     iter++;
   }
   return iter;
-}
-
-function drawHudFrame() {
-  noFill();
-  stroke(0, 255, 179, 180);
-  strokeWeight(1);
-  rect(0, 0, asciiZone.w, asciiZone.h);
-
-  let cornerLen = 14;
-  stroke(255, 0, 200, 220);
-  strokeWeight(2);
-  line(0, 0, cornerLen, 0); line(0, 0, 0, cornerLen);
-  line(asciiZone.w, 0, asciiZone.w - cornerLen, 0); line(asciiZone.w, 0, asciiZone.w, cornerLen);
-  line(0, asciiZone.h, cornerLen, asciiZone.h); line(0, asciiZone.h, 0, asciiZone.h - cornerLen);
-  line(asciiZone.w, asciiZone.h, asciiZone.w - cornerLen, asciiZone.h); line(asciiZone.w, asciiZone.h, asciiZone.w, asciiZone.h - cornerLen);
-
-  noStroke();
-  fill(0, 255, 179, 200);
-  textFont('monospace');
-  textSize(9);
-  textAlign(LEFT, TOP);
-  text('MANDELBROT_SET :: zoom×' + nf(mbZoom, 1, 1), 4, -16);
-  textAlign(RIGHT, TOP);
-  fill(255, 0, 200, 180);
-  text('z→z²+c', asciiZone.w - 4, -16);
 }
 
 /* ============ CONTROLES ============ */

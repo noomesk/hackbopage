@@ -36,11 +36,12 @@ canvas {
 
 header {
   pointer-events: auto;
+  max-width: 55%;
 }
 
 h1.glitch {
   font-family: 'Orbitron', sans-serif;
-  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-size: clamp(2rem, 6vw, 4.5rem);
   font-weight: 900;
   letter-spacing: 0.05em;
   color: #00ffb3;
@@ -98,7 +99,7 @@ h1.glitch::after {
 
 .subtitle {
   margin-top: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   letter-spacing: 0.15em;
   color: #7dfcd0;
   opacity: 0.8;
@@ -160,6 +161,60 @@ button:hover {
   transform: scale(1.05);
 }
 
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(5, 10, 15, 0.6);
+  border: 1px solid rgba(0,255,179,0.3);
+  border-radius: 30px;
+  padding: 0.4rem 1rem;
+}
+
+.slider-group label {
+  font-size: 0.7rem;
+  color: #7dfcd0;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.slider-group input[type="range"] {
+  -webkit-appearance: none;
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #00ffb3, #ff00c8);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.slider-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #05060a;
+  border: 2px solid #00ffb3;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,255,179,0.8);
+}
+
+.slider-group input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #05060a;
+  border: 2px solid #00ffb3;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,255,179,0.8);
+}
+
+.slider-group span {
+  font-size: 0.75rem;
+  color: #00e0ff;
+  min-width: 32px;
+}
+
 .stats {
   display: flex;
   gap: 1rem;
@@ -181,8 +236,11 @@ footer {
 
 #clock { color: #00ffb3; }
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
+  header { max-width: 100%; }
   .info-box { max-width: 100%; }
   .stats { margin-left: 0; }
-  h1.glitch { font-size: 2.2rem; }
+  h1.glitch { font-size: 2rem; }
+  .slider-group { width: 100%; }
+  .slider-group input[type="range"] { flex: 1; }
 }
