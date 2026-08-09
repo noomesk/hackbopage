@@ -1,4 +1,4 @@
-# HackBo Web 🧬
+# HackBo Web 
 
 > Arte generativo bioinformático — patrones emergentes, complejidad y fractales,
 > renderizados en tiempo real directamente en el navegador.
@@ -9,7 +9,7 @@ belleza visual compleja — el mismo principio que rige la naturaleza.
 
 ---
 
-## 🎯 Concepto
+##  Concepto
 
 Esta página no es solo estética: es una **demostración visual de un principio
 matemático y biológico real**. Todo lo que ves en pantalla nace de sistemas
@@ -32,7 +32,7 @@ lenguaje matemático expresado de formas distintas.
 
 ---
 
-## 🛠️ Tecnologías usadas
+##  Tecnologías usadas
 
 | Tecnología | Uso |
 |---|---|
@@ -51,5 +51,4 @@ lenguaje matemático expresado de formas distintas.
 > renderizado aprovecha aceleración de hardware del navegador.
 
 ---
-
-## 🏗️ Arquitectura del proyecto
+dev by noomesk
